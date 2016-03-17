@@ -3,20 +3,24 @@
 module Main where
 
 import Data.Maybe
+import Data.Monoid
 import Network.Wreq
-import Control.Lens
-import Data.Aeson.Lens
+import Data.ByteString.Lazy (ByteString)
 import Forecast
+import qualified Icons as Icons
 
 
 
 accessToken = "db4db26b0bb9053853a23e8565ce7be9"
-getWeatherIn = getWeather accessToken
-
-
+fetchWeatherIn = getWeather accessToken
 
 main :: IO ()
 main = do
-  r <- getWeatherIn montreal
-  let summary = fromJust $ r ^? responseBody . key "hourly" . key "summary"
-  print summary
+  r <- fetchWeatherIn montreal
+  putStrLn . getWeatherTypeIcon . getWeatherType $ r
+
+
+
+getWeatherTypeIcon :: String -> String
+getWeatherTypeIcon "rain" = Icons.cloud
+getWeatherTypeIcon kind = "Unknown type of weather: " <> kind

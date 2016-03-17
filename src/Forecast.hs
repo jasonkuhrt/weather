@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 
 -- forecast.io API
 
@@ -5,6 +6,9 @@ module Forecast where
 
 import Data.ByteString.Lazy
 import Network.Wreq
+import Control.Lens
+import Data.Aeson.Lens
+import Data.Text
 
 
 
@@ -27,6 +31,9 @@ getWeather accessToken (Location lat lon) = get uri
   uri = apiHost ++ accessToken ++ "/" ++ (show lat) ++ "," ++ (show lon)
 
 
+getWeatherType :: (Response ByteString) -> String
+getWeatherType r =
+  Data.Text.unpack (r ^. responseBody . key "currently" . key "icon" . _String)
 
 -- Location Aliases
 

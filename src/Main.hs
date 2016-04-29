@@ -7,7 +7,7 @@ import Data.Monoid
 import Network.Wreq
 import Data.ByteString.Lazy (ByteString)
 import Forecast
-import qualified Icons as Icons
+import qualified Icons
 
 
 

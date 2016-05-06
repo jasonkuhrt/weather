@@ -9,6 +9,17 @@ import Data.List
 type DataPoint = (Int, [Observation]) -- time, observations
 type Observation = (String, Float) -- label, value
 
+data TimeSeries =
+  TimeSeries {
+    timeStart :: Int,
+    timeInterval :: Int,
+    labelCorner :: String,
+    observations :: [(String, [Float])]
+  }
+  deriving (Eq, Show)
+  -- Example:
+  -- TimeSeries 1458014400 86400000 "" [("x", [])]
+
 
 
 -- Development --
@@ -38,6 +49,19 @@ testRenderValue = renderValue 4 $ snd . head . snd . head $ mockData
 testRenderDataPoints = putStr $ str ++ "\n"
   where
   str = renderDataPoints mockData
+
+dataToTimeSeries ds = TimeSeries timeStart timeInterval labelCorner dataPoints
+  where
+  timeStart = fst . head $ ds
+  timeInterval = (fst . (!! 1) $ ds) - timeStart
+  labelCorner = ""
+  dataPoints = gatherDataPoints ds
+  gatherDataPoints :: [(Int, [(String, Float)])] -> [(String, [Float])]
+  gatherDataPoints ds = zip labels values
+    where
+    labels = (map fst . snd . head) ds
+    values = (transpose . (map (map snd))) (map snd ds)
+
 
 
 

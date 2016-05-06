@@ -44,20 +44,19 @@ testRenderDataPoints = putStr $ str ++ "\n"
 -- Module --
 
 renderDataPoints :: [DataPoint] -> String
-renderDataPoints dps =
-  unlines [columnHeadsStr, observationStr]
+renderDataPoints dps = renderedTable
   where
-  columnHeadsStr = row (gap rowHeadsColumnWidth : columnHeads)
-  observationStr = (unlines . map row) observations
-  columnWidth = calcColumnWidth columnHeads
-  columnHeads = map (show . fst) dps
+  renderedTable = renderTable contentRows
+  renderTable = unlines . map (renderRow " ")
+  contentRows = columnHeads : observations
+  columnHeads = gap rowHeadsColumnWidth : map (show . fst) dps
   rowHeadsColumnWidth = calcColumnWidth rowHeads
   rowHeads = (map fst . snd . head) dps
   observations = gatherObservations (map snd dps)
   observation = label : map (renderValue columnWidth) values
   values = map (snd . head . snd) dps
   label = (fst . head . snd . head) dps
-  row = renderRow " "
+  columnWidth = calcColumnWidth columnHeads
   gatherObservations dpObs = gathered
     where
     gathered = transpose (labels : values)

@@ -1,5 +1,7 @@
 module TimeSeries where
 
+import Data.List
+
 -- This module is concerned with rendering time-series compatible data into a string that visualizes via graph techniques.
 
 
@@ -45,14 +47,22 @@ renderDataPoints :: [DataPoint] -> String
 renderDataPoints dps =
   unlines [columnHeadsStr, observationStr]
   where
-  observationStr = renderRow " " (label : map (renderValue columnWidth) values)
-  columnHeadsStr = renderRow " " (gap rowHeadsColumnWidth : columnHeads)
+  columnHeadsStr = row (gap rowHeadsColumnWidth : columnHeads)
+  observationStr = (unlines . map row) observations
   columnWidth = calcColumnWidth columnHeads
   columnHeads = map (show . fst) dps
   rowHeadsColumnWidth = calcColumnWidth rowHeads
   rowHeads = (map fst . snd . head) dps
+  observations = gatherObservations (map snd dps)
+  observation = label : map (renderValue columnWidth) values
   values = map (snd . head . snd) dps
   label = (fst . head . snd . head) dps
+  row = renderRow " "
+  gatherObservations dpObs = gathered
+    where
+    gathered = transpose (labels : values)
+    values = map (map (renderValue columnWidth . snd)) dpObs
+    labels = map (padRight rowHeadsColumnWidth . fst) . head $ dpObs
 
 renderValue :: Int -> Float -> String
 renderValue width value =

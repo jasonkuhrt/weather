@@ -46,9 +46,12 @@ mockData =
 
 
 testRenderValue = renderValue 4 $ snd . head . snd . head $ mockData
-testRenderDataPoints = putStr $ str ++ "\n"
+testRenderDataPoints = putStr $ s ++ "\n"
   where
-  str = renderDataPoints mockData
+  s = renderDataPoints mockData
+testRenderTimeSeries = putStr $ s ++ "\n"
+  where
+  s = renderTimeSeries . dataToTimeSeries $ mockData
 
 dataToTimeSeries ds = TimeSeries timeStart timeInterval labelCorner dataPoints
   where
@@ -60,7 +63,19 @@ dataToTimeSeries ds = TimeSeries timeStart timeInterval labelCorner dataPoints
   gatherDataPoints ds = zip labels values
     where
     labels = (map fst . snd . head) ds
-    values = (transpose . (map (map snd))) (map snd ds)
+    values = (transpose . map (map snd)) (map snd ds)
+
+
+renderTimeSeries :: TimeSeries -> String
+renderTimeSeries (TimeSeries tStart tInterval cornerLabel obs) =
+  s
+  where
+  s = unlines $ map renderObservation obs
+  columnWidth = 4
+  renderObservation (label, values) = renderRow " " (label : valuesStr)
+    where
+    valuesStr = map (renderValue columnWidth) values
+
 
 
 

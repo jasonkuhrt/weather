@@ -1,6 +1,7 @@
 module TimeSeries where
 
 import Data.List
+import Data.Maybe
 
 -- This module is concerned with rendering time-series compatible data into a string that visualizes via graph techniques.
 
@@ -14,7 +15,7 @@ data TimeSeries =
     timeStart :: Int,
     timeInterval :: Int,
     labelCorner :: String,
-    observations :: [(String, [Float])]
+    observations :: [(String, [String])]
   }
   deriving (Eq, Show)
   -- Example:
@@ -46,12 +47,13 @@ mockData =
 
 
 testRenderValue = renderValue 4 $ snd . head . snd . head $ mockData
-testRenderDataPoints = putStr $ s ++ "\n"
+testRenderDataPoints = putStr $ "\n" ++ s ++ "\n"
   where
   s = renderDataPoints mockData
-testRenderTimeSeries = putStr $ s ++ "\n"
+testData = dataToTimeSeries $ mockData
+testRenderTimeSeries = putStr $ "\n" ++ s ++ "\n"
   where
-  s = renderTimeSeries . dataToTimeSeries $ mockData
+  s = renderTimeSeries . sizeColumns $ testData
 
 dataToTimeSeries ds = TimeSeries timeStart timeInterval labelCorner dataPoints
   where
@@ -59,28 +61,41 @@ dataToTimeSeries ds = TimeSeries timeStart timeInterval labelCorner dataPoints
   timeInterval = (fst . (!! 1) $ ds) - timeStart
   labelCorner = ""
   dataPoints = gatherDataPoints ds
-  gatherDataPoints :: [(Int, [(String, Float)])] -> [(String, [Float])]
+  gatherDataPoints :: [(Int, [(String, Float)])] -> [(String, [String])]
   gatherDataPoints ds = zip labels values
     where
     labels = (map fst . snd . head) ds
-    values = (transpose . map (map snd)) (map snd ds)
+    values = (transpose . map (map (show . snd))) (map snd ds)
 
+sizeColumns = mapColumns sizeColumn
+  where
+  sizeColumn col = map (padRight maxWidth) col
+    where
+    maxWidth = maximum . map length $ col
+
+mapColumns f (TimeSeries ts ti l ds) =
+  TimeSeries ts ti l ds'
+  where
+  ds' = toRows . map f $ (toColumns ds)
+
+toColumns ds = labels : values
+  where
+  labels = map fst ds
+  values = transpose . map snd $ ds
+
+toRows cols = rows
+  where
+  rows = map (fromJust . uncons) $ transpose cols
+
+
+-- Module --
 
 renderTimeSeries :: TimeSeries -> String
 renderTimeSeries (TimeSeries tStart tInterval cornerLabel obs) =
   s
   where
   s = unlines $ map renderObservation obs
-  columnWidth = 4
-  renderObservation (label, values) = renderRow " " (label : valuesStr)
-    where
-    valuesStr = map (renderValue columnWidth) values
-
-
-
-
-
--- Module --
+  renderObservation (label, values) = renderRow " " (label : values)
 
 renderDataPoints :: [DataPoint] -> String
 renderDataPoints dps = renderTable contentRows

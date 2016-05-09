@@ -1,41 +1,50 @@
+{-# LANGUAGE DeriveFunctor #-}
+
 module Table where
 
 import Data.List
 
-type Cell = String
-type Row = [Cell]
+
+
+-- Custom Types --
+
+newtype Cell a = Cell a deriving (Eq, Show, Functor)
+type Row = [Cell String]
 type Table = [Row]
-type Column = [Cell]
+type Column = [Cell String]
 
 
 
 renderTable :: Table -> String
-renderTable = concatMap renderRow . sizeColumns
+renderTable = unlines . fmap renderRow . sizeColumns
   where
-  renderRow = intercalate " " . (++ ["\n"])
   sizeColumns = mapColumns sizeColumn
+  renderRow = intercalate columnBorder . fmap cellValue
+  columnBorder = " "
 
 
 
 -- Table Helpers --
 
 sizeColumn :: Column -> Column
-sizeColumn cells = map (sizeWidth n) cells
+sizeColumn cells = (fmap . fmap) (setWidth n) cells
   where
-  n = maximum . (map length) $ cells
+  n = maximum . fmap (length . cellValue) $ cells
 
 mapColumns :: (Column -> Column) -> Table -> Table
-mapColumns f = transpose . map f . transpose
+mapColumns f = transpose . fmap f . transpose
 
-mapCells :: (Cell -> Cell) -> Table -> Table
-mapCells f = mapColumns (map f)
+cellValue (Cell x) = x
+
+makeTable :: [[String]] -> Table
+makeTable = fmap . fmap $ Cell
 
 
 
 -- String Helpers --
 
-sizeWidth :: Int -> String -> String
-sizeWidth n s =
+setWidth :: Int -> String -> String
+setWidth n s =
   s ++ gap nEmpty
   where
   nEmpty = n - length s
@@ -51,7 +60,8 @@ gap n = (concat . take n) spaces
 
 t = putStr $ "\n" ++ renderTable mockData ++ "\n"
 
-mockData =
+mockData :: Table
+mockData = makeTable
   [
     ["", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
     ["Temperature", "3", "5", "10", "11", "9"],

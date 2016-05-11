@@ -1,64 +1,55 @@
 {-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Table where
 
+import Data.Monoid
 import Data.List
+import Data.Text (Text)
+import qualified Data.Text as T
 
 
 
--- Custom Types --
+-- Types --
 
 newtype Cell a = Cell a deriving (Eq, Show, Functor)
-type Row = [Cell String]
+type Row = [Cell Text]
 type Table = [Row]
-type Column = [Cell String]
+type Column = [Cell Text]
 
 
 
-renderTable :: Table -> String
-renderTable = unlines . fmap renderRow . sizeColumns
+-- Main --
+
+renderTable :: Table -> Text
+renderTable = T.unlines . fmap renderRow . sizeColumns
   where
   sizeColumns = mapColumns sizeColumn
-  renderRow = intercalate columnBorder . fmap cellValue
+  renderRow = T.intercalate columnBorder . fmap cellValue
   columnBorder = " "
 
 
 
--- Table Helpers --
+-- Helpers --
 
 sizeColumn :: Column -> Column
-sizeColumn cells = (fmap . fmap) (setWidth n) cells
+sizeColumn cells = (fmap . fmap) (T.justifyLeft n ' ') cells
   where
-  n = maximum . fmap (length . cellValue) $ cells
+  n = maximum . fmap (T.length . cellValue) $ cells
 
 mapColumns :: (Column -> Column) -> Table -> Table
 mapColumns f = transpose . fmap f . transpose
 
 cellValue (Cell x) = x
 
-makeTable :: [[String]] -> Table
+makeTable :: [[Text]] -> Table
 makeTable = fmap . fmap $ Cell
-
-
-
--- String Helpers --
-
-setWidth :: Int -> String -> String
-setWidth n s =
-  s ++ gap nEmpty
-  where
-  nEmpty = n - length s
-
-gap :: Int -> String
-gap n = (concat . take n) spaces
-  where
-    spaces = repeat " "
 
 
 
 -- Development --
 
-t = putStr $ "\n" ++ renderTable mockData ++ "\n"
+t = putStr $ "\n" ++ T.unpack (renderTable mockData) ++ "\n"
 
 mockData :: Table
 mockData = makeTable

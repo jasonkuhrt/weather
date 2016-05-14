@@ -1,6 +1,10 @@
+-- Note that annother implementation can be found at:
+-- https://rosettacode.org/wiki/Sparkline_in_unicode#Haskell
+
 module Sparkline where
 
 import Data.Char
+
 
 
 barCount = length bars
@@ -48,7 +52,6 @@ getIndexOf xs i = xs !! fromIntegral i
 
 -- Development --
 
--- Visualize a set of numbers as a Sparkline.
 -- The resolution of the Sparkline is 8 steps. All numbers in the set must map to one of these steps.
 
 -- barCount    = 8 (AKA resolution)

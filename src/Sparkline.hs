@@ -3,45 +3,75 @@ module Sparkline where
 import Data.Char
 
 
+barCount = length bars
+bars = map chr [0x2581..0x2588]
 
-type Min = Int
-type Max = Int
 
-charScale :: String
-charScale = map chr [0x2581..0x2588]
-resolution = length charScale
 
-render :: Max -> Min -> [Float] -> String
-render maxX minX =
-  map ((charScale !!) . subtract 1 . doCalcStep)
-  -- show . map doCalcStep
+draw :: RealFrac a => a -> a -> [a] -> String
+draw bot top =
+  fmap drawBar
   where
-  doCalcStep :: Float -> Int
-  doCalcStep = calcStep resolution maxX minX
+  drawBar = getIndexOf bars . calculateBarIndex barCount bot top
+
+
+
+inferredDraw :: RealFrac a => [a] -> String
+inferredDraw xs =
+  fmap drawBar xs
+  where
+  drawBar = getIndexOf bars . calculateBarIndex barCount bot top
+  bot     = minimum xs
+  top     = maximum xs
+
+
+
+calculateBarIndex :: (Eq a, RealFrac a) => Int -> a -> a -> a -> Int
+calculateBarIndex barCount bot top xAbsolute =
+  barAtPercentage dataPercent
+  where
+  -- Given the datum's percentage placement within the data range
+  -- we can then find the corresponding bar at that percent. Of course
+  -- this needs to be rounded since bars are a list. In other words the data
+  -- percentage is mapped to the **closest matching** bar, not necessarially
+  -- a perfect fit. Finally we subtract 1 because we want to be zero-indexed.
+  barAtPercentage = round . (* realToFrac (barCount - 1))
+  dataPercent     = xRelative / dataSize
+  dataSize        = top - bot
+  xRelative       = xAbsolute - bot
+
+
+
+getIndexOf xs i = xs !! fromIntegral i
+
+
+
+-- Development --
 
 -- Visualize a set of numbers as a Sparkline.
 -- The resolution of the Sparkline is 8 steps. All numbers in the set must map to one of these steps.
 
-calcStep :: Int -> Max -> Min -> Float -> Int
-calcStep stepCount maxX minX x = doCalc x
-  where
-  doCalc :: Float -> Int
-  doCalc x
-    | x == realToFrac maxX  = stepCount
-    | otherwise             = (+1) . floor . (/ stepSize) $ x
-  stepSize :: Float
-  stepSize = (/) (realToFrac maxX) (realToFrac stepCount)
+-- barCount    = 8 (AKA resolution)
+-- dataMin      = 0
+-- dataMax      = 10
+-- dataSize     = dataMax - dataMin
+-- dataPerBar  = dataSize / barCount
+-- calc         = ceiling . (/ dataPerBar) . subtract dataMin
+--
+-- e.g.
+-- datum        = 3
+-- step         = calc datum
 
+test =
+  putStrLn .
+  unlines $
+  [
+    draw 0 10 [0..10]
+  , inferredDraw [0..10]
+  , draw 0 5 [0..5]
+  , draw 5 10 [5..10]
+  , draw (-1000) 1000 (parse "-1000 100 1000 500 200 -400 -700 621 -189 3")
+  , draw 1 8 (parse "1 2 3 4 5 6 7 8 7 6 5 4 3 2 1")
+  ]
 
-
--- Example:
--- resolution = 8 (AKA stepCount)
--- Max        = 10
--- Min        = 0
--- value      = 3
--- stepSize   = max / resolution (1.25)
--- step       = ceiling . (/) $ value stepSize
-
-test1 = putStrLn $ render 8 0 [0..7]
-test2 = putStrLn $ render 8 0 [1..8]
-test3 = putStrLn $ render 100 0 [0..100]
+parse = map (\x -> read x :: Float) . words

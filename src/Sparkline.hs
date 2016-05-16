@@ -1,10 +1,11 @@
--- Note that annother implementation can be found at:
--- https://rosettacode.org/wiki/Sparkline_in_unicode#Haskell
-
 module Sparkline where
 
 import Data.Char
 
+{-# ANN module "HLint: ignore Eta reduce" #-}
+
+-- Note that annother implementation can be found at:
+-- https://rosettacode.org/wiki/Sparkline_in_unicode#Haskell
 
 
 barCount = length bars
@@ -13,8 +14,8 @@ bars = map chr [0x2581..0x2588]
 
 
 draw :: RealFrac a => a -> a -> [a] -> String
-draw bot top =
-  fmap drawBar
+draw bot top xs =
+  fmap drawBar xs
   where
   drawBar = getIndexOf bars . calculateBarIndex barCount bot top
 

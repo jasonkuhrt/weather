@@ -13,21 +13,16 @@ bars = map chr [0x2581..0x2588]
 
 
 
-draw :: RealFrac a => a -> a -> [a] -> String
-draw bot top xs =
+draw :: RealFrac a => [a] -> String
+draw xs = drawWithRange (minimum xs) (maximum xs) xs
+
+
+
+drawWithRange :: RealFrac a => a -> a -> [a] -> String
+drawWithRange bot top xs =
   fmap drawBar xs
   where
   drawBar = getIndexOf bars . calculateBarIndex barCount bot top
-
-
-
-inferredDraw :: RealFrac a => [a] -> String
-inferredDraw xs =
-  fmap drawBar xs
-  where
-  drawBar = getIndexOf bars . calculateBarIndex barCount bot top
-  bot     = minimum xs
-  top     = maximum xs
 
 
 
@@ -70,12 +65,12 @@ test =
   putStrLn .
   unlines $
   [
-    draw 0 10 [0..10]
-  , inferredDraw [0..10]
-  , draw 0 5 [0..5]
-  , draw 5 10 [5..10]
-  , draw (-1000) 1000 (parse "-1000 100 1000 500 200 -400 -700 621 -189 3")
-  , draw 1 8 (parse "1 2 3 4 5 6 7 8 7 6 5 4 3 2 1")
+    drawWithRange 0 10 [0..10]
+  , draw [0..10]
+  , drawWithRange 0 5 [0..5]
+  , drawWithRange 5 10 [5..10]
+  , drawWithRange (-1000) 1000 (parse "-1000 100 1000 500 200 -400 -700 621 -189 3")
+  , drawWithRange 1 8 (parse "1 2 3 4 5 6 7 8 7 6 5 4 3 2 1")
   ]
 
 parse = map (\x -> read x :: Float) . words

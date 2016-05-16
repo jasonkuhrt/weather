@@ -13,21 +13,23 @@ bars = map chr [0x2581..0x2588]
 
 
 
+-- API --
+
 draw :: RealFrac a => [a] -> String
-draw xs = drawWithRange (minimum xs) (maximum xs) xs
+draw xs = drawWithRange (calcRange xs) xs
 
-
-
-drawWithRange :: RealFrac a => a -> a -> [a] -> String
-drawWithRange bot top xs =
+drawWithRange :: RealFrac a => (a,a) -> [a] -> String
+drawWithRange range xs =
   fmap drawBar xs
   where
-  drawBar = getIndexOf bars . calculateBarIndex barCount bot top
+  drawBar = getIndexOf bars . calculateBarIndex barCount range
 
 
 
-calculateBarIndex :: (Eq a, RealFrac a) => Int -> a -> a -> a -> Int
-calculateBarIndex barCount bot top xAbsolute =
+-- Helpers --
+
+calculateBarIndex :: (Eq a, RealFrac a) => Int -> (a,a) -> a -> Int
+calculateBarIndex barCount (bot,top) xAbsolute =
   barAtPercentage dataPercent
   where
   -- Given the datum's percentage placement within the data range
@@ -39,6 +41,11 @@ calculateBarIndex barCount bot top xAbsolute =
   dataPercent     = xRelative / dataSize
   dataSize        = top - bot
   xRelative       = xAbsolute - bot
+
+
+
+calcRange :: (Ord a, Num a) => [a] -> (a,a)
+calcRange xs = (minimum xs, maximum xs)
 
 
 
@@ -65,12 +72,12 @@ test =
   putStrLn .
   unlines $
   [
-    drawWithRange 0 10 [0..10]
+    drawWithRange (0,10) [0..10]
   , draw [0..10]
-  , drawWithRange 0 5 [0..5]
-  , drawWithRange 5 10 [5..10]
-  , drawWithRange (-1000) 1000 (parse "-1000 100 1000 500 200 -400 -700 621 -189 3")
-  , drawWithRange 1 8 (parse "1 2 3 4 5 6 7 8 7 6 5 4 3 2 1")
+  , drawWithRange (0,5) [0..5]
+  , drawWithRange (5,10) [5..10]
+  , drawWithRange (-1000,1000) (parse "-1000 100 1000 500 200 -400 -700 621 -189 3")
+  , drawWithRange (1,8) (parse "1 2 3 4 5 6 7 8 7 6 5 4 3 2 1")
   ]
 
 parse = map (\x -> read x :: Float) . words

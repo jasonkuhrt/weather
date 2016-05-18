@@ -8,7 +8,8 @@ import Data.Char
 -- https://rosettacode.org/wiki/Sparkline_in_unicode#Haskell
 
 
-barCount = length bars
+
+bars :: String
 bars = map chr [0x2581..0x2588]
 
 
@@ -23,6 +24,7 @@ drawWithRange range xs =
   fmap drawBar xs
   where
   drawBar = getIndexOf bars . calculateBarIndex barCount range
+  barCount = length bars
 
 
 
@@ -49,35 +51,5 @@ calcRange xs = (minimum xs, maximum xs)
 
 
 
+getIndexOf :: [a] -> Int -> a
 getIndexOf xs i = xs !! fromIntegral i
-
-
-
--- Development --
-
--- The resolution of the Sparkline is 8 steps. All numbers in the set must map to one of these steps.
-
--- barCount    = 8 (AKA resolution)
--- dataMin      = 0
--- dataMax      = 10
--- dataSize     = dataMax - dataMin
--- dataPerBar  = dataSize / barCount
--- calc         = ceiling . (/ dataPerBar) . subtract dataMin
---
--- e.g.
--- datum        = 3
--- step         = calc datum
-
-test =
-  putStrLn .
-  unlines $
-  [
-    drawWithRange (0,10) [0..10]
-  , draw [0..10]
-  , drawWithRange (0,5) [0..5]
-  , drawWithRange (5,10) [5..10]
-  , drawWithRange (-1000,1000) (parse "-1000 100 1000 500 200 -400 -700 621 -189 3")
-  , drawWithRange (1,8) (parse "1 2 3 4 5 6 7 8 7 6 5 4 3 2 1")
-  ]
-
-parse = map (\x -> read x :: Float) . words

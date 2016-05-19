@@ -1,4 +1,4 @@
-module Main where
+module AppTest where
 
 import Test.Hspec
 import qualified SparklineTest

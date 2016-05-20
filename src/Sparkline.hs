@@ -1,9 +1,14 @@
 -- Note that annother implementation can be found at:
 -- https://rosettacode.org/wiki/Sparkline_in_unicode#Haskell
 
-module Sparkline where
+module Sparkline (
+  draw,
+  drawWithRange
+) where
 
 import Data.Char
+import Data.Text (Text)
+import qualified Data.Text as Text
 
 {-# ANN module "HLint: ignore Eta reduce" #-}
 
@@ -11,12 +16,12 @@ import Data.Char
 
 -- API --
 
-draw :: RealFrac a => [a] -> String
+draw :: RealFrac a => [a] -> Text
 draw xs = drawWithRange (calcRange xs) xs
 
 
-drawWithRange :: RealFrac a => (a,a) -> [a] -> String
-drawWithRange = fmap . drawDataMeasureWithRange
+drawWithRange :: RealFrac a => (a,a) -> [a] -> Text
+drawWithRange range = Text.pack . fmap (drawDataMeasureWithRange range)
 
 
 -- Note: This function has a lexical dependency on `dataMeasures`

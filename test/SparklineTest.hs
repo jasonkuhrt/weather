@@ -1,10 +1,9 @@
-module SparklineTest where
+{-# LANGUAGE OverloadedStrings #-}
+
+module SparklineTest (test) where
 
 import Test.Hspec
 import Sparkline
-
-{-# ANN module "HLint: ignore Redundant do" #-}
-
 
 
 

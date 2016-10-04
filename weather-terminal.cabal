@@ -1,4 +1,4 @@
-name:                app
+name:                weather-terminal
 version:             0.1.0.0
 synopsis:            Simple project template from stack
 description:         Please see README.md
@@ -12,8 +12,8 @@ category:            App
 build-type:          Simple
 cabal-version:       >=1.10
 
-executable app
-  hs-source-dirs:      src
+executable weather-terminal
+  hs-source-dirs:      source
   ghc-options:         -Wall -fwarn-tabs
   main-is:             Main.hs
   other-modules:       Sparkline, Forecast, Icons
@@ -22,8 +22,8 @@ executable app
 
 test-suite test
   type: exitcode-stdio-1.0
-  hs-source-dirs: test, src
-  other-modules: Sparkline
-  main-is: AppTest.hs
+  hs-source-dirs: test, source
+  other-modules: Sparkline, SparklineTest
+  main-is: MainTest.hs
   build-depends: base >= 4.7 && < 5, hspec, text
   default-language: Haskell2010

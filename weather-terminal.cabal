@@ -16,14 +16,25 @@ executable weather-terminal
   hs-source-dirs:      source
   ghc-options:         -Wall -fwarn-tabs
   main-is:             Main.hs
-  other-modules:       Sparkline, Forecast, Icons
+  -- other-modules:       Sparkline, Forecast, Icons
+  other-modules:       WeatherPoint
   default-language:    Haskell2010
-  build-depends:       base >= 4.7 && < 5, wreq, lens, lens-aeson, bytestring, text
+  build-depends:       base >= 4.7 && < 5,
+                       wreq,
+                       bytestring,
+                       text,
+                       directory,
+                       containers,
+                       aeson,
+                       lens,
+                       lens-aeson
 
 test-suite test
   type: exitcode-stdio-1.0
   hs-source-dirs: test, source
   other-modules: Sparkline, SparklineTest
   main-is: MainTest.hs
-  build-depends: base >= 4.7 && < 5, hspec, text
+  build-depends:  base >= 4.7 && < 5,
+                  hspec,
+                  text
   default-language: Haskell2010

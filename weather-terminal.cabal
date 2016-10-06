@@ -17,7 +17,7 @@ executable weather-terminal
   ghc-options:         -Wall -fwarn-tabs
   main-is:             Main.hs
   -- other-modules:       Sparkline, Forecast, Icons
-  other-modules:       WeatherPoint
+  other-modules:       WeatherPoint, ForecastHours
   default-language:    Haskell2010
   build-depends:       base >= 4.7 && < 5,
                        wreq,

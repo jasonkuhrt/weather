@@ -48,37 +48,39 @@ data WeatherPoint = WeatherPoint {
   }
   deriving (Show, Eq)
 
-{- Notes on Parsing API Reponses
+{- Notes on Parsing darksky API Reponses
 
-Reference: https://darksky.net/dev/docs/response
+-- Guaranteed Fields
 
--- Required fields
-  time
+  * time
 
--- timeframe-conditional fields
+-- Timeframe-Conditional Fields
 
-* Certain fields concern a range (e.g. tempMin)
-  but they are only present for a `daily` timeframe.
+  * Fields that pertain to a range (e.g. `tempMin`, `tempMax`)
+    only appear for a `daily` timeframe.
 
+-- Conditional `precip*` Fields [1]
 
--- [1] About `precip*` Fields
+  * `prcipType` only if `precipIntensity` is > 0
 
-* `type` only if `intensity` is > 0
+  * if timeframe is `minutely` then
+    `prcipIntensity` only if `probability` is > 0
 
-* if timeframe is `minutely` then
-  `intensity` only if `probability` is > 0
+  Therefore to determine precipitation existance we must check, in order:
 
-Therefore to determine precipitation existance we must check, in order:
+    Is intensity present?
+    Is intensity > 0?
 
-  Is intensity present?
-  Is intensity > 0?
+  We might be tempted to check:
 
-or (since intensity depends on probability of value):
+    Is probability > 0?
+    Is intensity > 0?
 
-  Is probability > 0?
-  Is intensity > 0?
+  But this check is only correct for `minutely` timeframes and thus less generic/error prone than the former.
 
-Either way seems to achieve the same result, so pick as we wish.
+-- References
+
+  * https://darksky.net/dev/docs/response
 -}
 instance FromJSON WeatherPoint where
   parseJSON jsonData@(Object o) =
@@ -89,17 +91,16 @@ instance FromJSON WeatherPoint where
     <*> o .: "humidity"
     <*> o .: "cloudCover"
     where
+    -- [1]
     parsedPrecipitation :: Parser (Maybe Precipitation)
-    parsedPrecipitation = do -- [1]
+    parsedPrecipitation = do
       mpp <- o .:? "precipProbability" :: Parser (Maybe Double)
-      mpn <- o .:? "precipIntensity"   :: Parser (Maybe Double)
-      case (mpn, mpp) of
-        (Just 0, _)      -> pure Nothing
-        (_, Just 0)      -> pure Nothing
-        (Just _, Just _) -> parseJSON jsonData
-        _                -> pure Nothing
+      mpi <- o .:? "precipIntensity"   :: Parser (Maybe Double)
+      case (fmap . fmap) (/= 0) [mpp, mpi] of
+        [Just True, Just True] -> parseJSON jsonData
+        _                      -> pure Nothing
 
-  parseJSON _              = mempty
+  parseJSON _            = mempty
 
 
 
@@ -142,8 +143,8 @@ main _ = undefined
 
 demo :: IO ()
 demo = do
-  print (decode bs :: Maybe WeatherPoint)
-  print (decode bs2 :: Maybe WeatherPoint)
+  print (decode data1NoPrecip :: Maybe WeatherPoint)
+  print (decode data2Precip :: Maybe WeatherPoint)
   where
-  bs = "{\"time\":1475697600,\"summary\":\"Clear\",\"icon\":\"clear-day\",\"precipIntensity\":0,\"precipProbability\":0,\"temperature\":64.72,\"apparentTemperature\":64.72,\"dewPoint\":46.38,\"humidity\":0.51,\"windSpeed\":6.63,\"windBearing\":287,\"visibility\":9.97,\"cloudCover\":0,\"pressure\":1018.96,\"ozone\":312.74}" :: ByteString
-  bs2 = "{\"time\":1475697600,\"summary\":\"Clear\",\"icon\":\"clear-day\",\"precipIntensity\":0,\"precipProbability\":0.5,\"precipIntensity\":0.1,\"precipType\":\"snow\",\"temperature\":64.72,\"apparentTemperature\":64.72,\"dewPoint\":46.38,\"humidity\":0.51,\"windSpeed\":6.63,\"windBearing\":287,\"visibility\":9.97,\"cloudCover\":0,\"pressure\":1018.96,\"ozone\":312.74}"
+  data1NoPrecip = "{\"time\":1475697600,\"summary\":\"Clear\",\"icon\":\"clear-day\",\"precipIntensity\":0,\"precipProbability\":0,\"temperature\":64.72,\"apparentTemperature\":64.72,\"dewPoint\":46.38,\"humidity\":0.51,\"windSpeed\":6.63,\"windBearing\":287,\"visibility\":9.97,\"cloudCover\":0,\"pressure\":1018.96,\"ozone\":312.74}" :: ByteString
+  data2Precip = "{\"time\":1475697600,\"summary\":\"Clear\",\"icon\":\"clear-day\",\"precipIntensity\":0,\"precipProbability\":0.5,\"precipIntensity\":0.1,\"precipType\":\"snow\",\"temperature\":64.72,\"apparentTemperature\":64.72,\"dewPoint\":46.38,\"humidity\":0.51,\"windSpeed\":6.63,\"windBearing\":287,\"visibility\":9.97,\"cloudCover\":0,\"pressure\":1018.96,\"ozone\":312.74}"
